@@ -1,0 +1,525 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1252">
+	<TITLE></TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 1.1.0  (Win32)">
+	<META NAME="CREATED" CONTENT="20031124;22111978">
+	<META NAME="CHANGED" CONTENT="20031124;23130470">
+	<STYLE>
+	<!--
+		@page { size: 8.5in 11in }
+		P.sourcecode { margin-left: 0.1in; BACKGROUND-COLOR: #F8eDab; FONT-FAMILY: "Courier New", Courier, mono;  }
+		BODY, P, TD { font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10pt }
+		H2,H3,H4,H5 { color: #ff9900; font-weight: bold; }
+		H2 { font-size: 13pt; }
+		H3 { font-size: 12pt; }
+		H4 { font-size: 10pt; color: black; }
+		PRE { margin-left: 0.1in; BACKGROUND-COLOR: #F8eDab; FONT-FAMILY: "Courier New", Courier, mono; WHITE-SPACE: pre; }
+		CODE { COLOR: #990000; FONT-FAMILY: "Courier New", Courier, mono; }
+	-->
+	</STYLE>
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>Welcome to TTL (the Tiny Template Library)</H1>
+<P><a href="http://www.sourceforge.net/projects/tinytl">Download</a></P>
+<P>For discussions about the library, support or feature requests, use the <A HREF="http://sourceforge.net/mail/?group_id=95699">mailing
+list.</A></P>
+<P>If you'd like to contribute, please e-mail the <a href="http://www.sourceforge.net/projects/tinytl">project admin</a>.</P>
+<H3>&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#Overview">Overview</A></H3>
+<H3>&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#Installation">Installation</A></H3>
+<H3>&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#Why">Why?</A></H3>
+<H3>&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#DesignNotes">Design Notes</A></H3>
+<H3>&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#Sample">Sample</A></H3>
+<H3>&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#sccs">ttl::sccs (Synchronous Calculus of Communicating Systems)</A></H3>
+<H3>&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#flags">ttl::flg</A></H3>
+<H3>&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#tuple">ttl::tup</A></H3>
+<H3>&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#meta">ttl::meta</A></H3>
+<H3>&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#function">ttl::func</A></H3>
+<H3>&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#variant">ttl::var</A></H3>
+<H3>&nbsp;&nbsp;&nbsp;&nbsp;<A HREF="#signal">ttl::sig</A></H3>
+<H2><A NAME="Overview"></A>Overview</H2>
+<P>The Tiny Template Library (TTL) is a C++ template library for
+generic programming. The main objective is to develop a lightweight
+practical alternative to some of the <A HREF="http://www.boost.org">Boost</A> components. TTL started as
+an experiment during the development of <A HREF="http://notus.sourceforge.net/">Notus</A>,
+a GUI template library. TTL was heavily influenced by Boost. As much
+as possible we try to support the Boost interfaces and semantic. In most
+cases switching between Boost and TTL should be as easy as switching
+headers and namespaces. For example</P>
+<P CLASS="sourcecode">#if defined(__USE_BOOST_VARIANT__)<BR># include
+&quot;boost/variant.hpp&quot;<BR># define VAR boost<BR>#else<BR>#
+include &quot;ttl/var/variant.hpp&quot;<BR># define VAR
+ttl::var<BR>#endif<BR>VAR::variant&lt;int, char&gt; v(1);</P>
+<P>Note: the comments about boost and ttl reflect our experience with
+boost v1.31.0 and TTL v1.0.</P>
+<H2><A NAME="Installation"></A>Installation</H2>
+<P><A href="http://www.sourceforge.net/projects/tinytl">Download</A></P>
+<P>The whole library resides in headers files only. There is nothing
+to be built or installed, just copy the TTL files into one of you
+folders and and make sure that this folder is in the list of include
+folders in your compiler. You can then include TTL headers as in 
+the following example.
+</P>
+<P CLASS="sourcecode">#include &quot;ttl/var/variant.hpp&quot; 
+</P>
+<H2><A NAME="Why"></A>Why?</H2>
+Why do we need an alternative? Well, just to have a choice...
+but there are some other reasons.
+<UL>
+	<LI>Boost doesn't have a consistent
+	approach to the memory management. Some classes use allocators,
+	while others use global new/delete. 
+	<LI>Boost doesn't have a consistent
+	exception handling policy. I would argue that some of the classes
+	are not safe. For instance some components use try/catch(...)
+	internally catching all possible exceptions that might happen on the
+	system and so triggering the stack unwinding in a potentially unsafe
+	environment. 
+	<LI>Long compilation times even for seemingly simple classes.
+	<LI>I didn't want to link to a static library to get a simple
+	signal-like functionality. 
+	<LI>A heavy use of macros and #if/#else clauses make it very difficult to read 
+	     and debug boost sources. One of the Boost's objectives is to support as many 
+	     compilers as possible including non-compliant compilers such as MSVC v6.0. 
+	     The result is that there are many flavors of the same object that are 
+	     separated by nested #if/#else blocks such as 
+<P CLASS="sourcecode">//real C++ version is already taken care of<BR>#if
+defined(BOOST_NO_TEMPLATE_PARTIAL_SPECIALIZATION) 
+</P>
+</UL>
+<H2><A NAME="DesignNotes"></A>Design Notes</H2>
+<P>One of the main objectives is a compact and readable implementation. 
+The library requires a relatively compliant compiler. As for now, we 
+test TTL on two compilers, MSVC v7.1 and GCC v3.2.3.
+If you are still using MSVC v6.0, please come back after you get rid of it. 
+</P>
+<H3>One definition</H3>
+<P>All classes have only one definition. For example if a definition
+compiles on MSVC v7.1 but not GCC 3.2.3, we'll choose to change the
+definition instead of adding #if defined(_MSC_VER) block.
+</P>
+<H3>Memory Management</H3>
+<P>TTL will never use global new/delete. All memory
+allocations/deallocations will be done with a user defined allocator
+or allocator defined in ttl::mem::memtraits class. 
+</P>
+<H3>Exception Handling</H3>
+<P>TTL never throws an exception type other than derived from
+the ttl::exception class. The library will never attempt to catch all
+exceptions with catch(...). Internally the library is allowed 
+to catch std::exception derived exceptions only. 
+</P>
+<H2><A NAME="Sample"></A>Sample</H2>
+<P>To build the sample, make sure to set TTL_ROOT environment
+variable to your TTL folder. The sample is located in the
+samples/test folder.<BR><BR>When ran, it should output<BR>int event:
+10<BR>double event: 2.3</P>
+<P>The sample source code:</P>
+
+<P CLASS="sourcecode">
+#if defined(_MSC_VER)<BR>
+# include &lt;crtdbg.h&gt; //just to generate the memory dump<BR>
+#endif<BR><BR>
+
+#include &lt;iostream&gt;<BR>
+#include &quot;ttl/func/function.hpp&quot;<BR>
+#include &quot;ttl/sig/signal.hpp&quot;<BR>
+#include &quot;ttl/var/variant.hpp&quot;<BR><BR>
+namespace VAR=ttl::var;<BR>
+namespace SIG=ttl::sig;<BR>
+namespace SIG_CON=ttl::sig;<BR>
+namespace FUNC=ttl::func;<BR>
+typedef ttl::sig::connection connection;<BR><BR>
+
+//define event type<BR>
+typedef VAR::variant&lt;double, int&gt; event;<BR><BR>
+struct event_visitor<BR>
+{<BR>&nbsp;&nbsp;&nbsp;void operator()( int x )
+<BR>&nbsp;&nbsp;&nbsp;{<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;std::cout&lt;&lt;&quot;int event: &quot;&lt;&lt;x&lt;&lt;&quot;\n&quot;;<BR>&nbsp;&nbsp;&nbsp;}<BR>&nbsp;&nbsp;&nbsp;void
+operator()( double x )<BR>&nbsp;&nbsp;&nbsp;{<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;std::cout&lt;&lt;&quot;double
+event: &quot;&lt;&lt;x&lt;&lt;&quot;\n&quot;;<BR>&nbsp;&nbsp;&nbsp;}<BR>};<BR>
+void event_callback( event&amp; ev
+)<BR>{<BR>&nbsp;&nbsp;&nbsp;event_visitor v;<BR>&nbsp;&nbsp;&nbsp;VAR::apply_visitor(v,
+ev);<BR>}<BR><BR>
+main()<BR>{<BR>#if
+defined(_MSC_VER)<BR>&nbsp;&nbsp;&nbsp;_CrtSetDbgFlag (
+_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );<BR>#endif
+<BR>&nbsp;&nbsp;&nbsp;//create signal and
+connections<BR>&nbsp;&nbsp;&nbsp;SIG::signal&lt; void (event&amp;) &gt;
+sig;<BR>&nbsp;&nbsp;&nbsp;connection
+con = sig.connect( event_callback );<BR><BR>&nbsp;&nbsp;&nbsp;event
+ev(10);<BR>&nbsp;&nbsp;&nbsp;sig(ev);<BR>&nbsp;&nbsp;&nbsp;ev =
+2.3;<BR>&nbsp;&nbsp;&nbsp;sig(ev);
+<BR>&nbsp;&nbsp;&nbsp;//disconnect<BR>&nbsp;&nbsp;&nbsp;con.disconnect();<BR>}<BR><BR><BR>
+</P>
+
+<H2><A NAME="sccs"></A>ttl::sccs (Synchronous Calculus of Communicating Systems)</H2>
+{ To be continued }
+
+<H2><A NAME="flags"></A>ttl::flg</H2>
+<P>The flg namspace contains:</P>
+<UL>
+	<LI>flags</LI>
+	<LI>flag_mapper</LI>
+</UL>
+<H3>ttl::flg::flags</H3>
+
+<P>flags<> provides a type safe and generic way to handle collections of flags
+that are usually defined as bitfields</P>
+<pre>
+template&lt; 
+	typename T, //flags type usuall enumeration
+	int Bits = sizeof(int)*8, //number of bits
+	typename Holder = typename impl::bestfit<Bits>::type //hold combinations of flags
+	&gt; struct flags
+{
+    typedef flags this_t;
+    typedef T value_type;
+
+    Holder f_;
+
+    flags();
+    flags( T f1, T f2, ... ); //intializes to f1|f2...
+    
+    Holder get_holder() const;
+    
+    bool test( const this_t& ) const;  //applies operator & to the holders
+    bool test() const { return f_!=0; }
+};
+</pre>
+
+<BR><BR><U>Usage</U><BR>
+<P>
+The flags<> class supports all bitwise and logical operatos.
+</P>
+<pre>
+//define some flags
+struct winstyle
+{
+    enum type
+    {
+        CAPTION = 1,
+        BORDER  = 1&lt;&lt;1,
+
+        size = 2  //the last used bit
+    };
+};
+
+typedef flags&lt;winstyle&gt; winstyle_flags;
+
+void set_style( winstyle_flags style )
+{
+    if( style.test(winstyle::CAPTION) )
+       ...do something about CAPTION
+}
+
+main()
+{
+    //initialize to winstyle::BORDER|winstyle::CAPTION
+    winstyle_flags f(winstyle::BORDER, winstyle::CAPTION);
+    set_style( f );
+}
+
+</pre>
+
+<H3>ttl::flg::flag_mapper</H3>
+
+<P>
+The TTL has a function for mapping one set of
+flags to another set. For instance if we need
+to map our winstyle flags to
+Win32 WS_CAPTION and WS_BORDER.
+
+<pre>
+struct flag_map
+{
+    std::multimap&lt; std::pair&lt;winstyle_flags, int&gt; &gt; map;
+
+    flag_map()
+    {
+        if( init_ )
+        {
+            init_ = false;  //initialize only once
+            map_.insert( winstyle::CAPTION, WS_CAPTION );
+            map_.insert( winstyle::BORDER, WS_BORDER );
+        }
+    }
+
+    static bool init_;
+    static map map_;
+}
+
+void set_style( winstyle_flags style );
+
+main()
+{
+    flag_map map;
+
+    set_style( winstyle_flags(winstyle::CAPTION,winstyle::BORDER)  )
+}
+
+
+void set_style( winstyle_flags style )
+{
+    //map our flags to Win32
+    int style = ttl::flg::flag_mapper( flag_map.map_.begin(), flag_map.map_.end(), style );
+
+    ::CreateWindow( ... style );  //use Win32 function with 'style' :)
+}
+</pre>
+</P>
+
+<H2><A NAME="tuple"></A>ttl::tup</H2>
+<P>
+The tup namespace implements tuple. Its semantic is very similar to boost::tuples.
+However the implementation concepts are quite different.
+</P>
+<P>
+The tup namespace contains the following symbols:
+</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0in">tuple&lt;&gt; 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in">get&lt;&gt; 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in">length&lt;&gt; 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in">element&lt;&gt; 
+	</P>
+</UL>
+<P>
+The maximum number of fields in tuple is defined
+by the TTL_MAX_TUPLE_PARAMS macro in config.h
+</P>
+
+<H3>Usage</H3>
+
+<P CLASS="sourcecode">
+ttl::tup::tuple&lt;int, double&gt; my_tuple;<br><br>
+
+my_tuple t(1, 2.3);<br>
+int n = ttl::tup:get&lt;0&gt;(t);<br>
+double x = ttl::tup:get&lt;1&gt;(t);<br>
+int l = ttl::tup::length&lt;my_tuple&gt;::value;<br>
+assert(l==2);<br><br>
+
+ttl::tup::element&lt;N, Tuple&gt;::type //type of the Nth element in Tuple.<br>
+</P>
+
+<H2><A NAME="meta"></A>ttl::meta</H2>
+<P>The meta namespace provides a small set of meta programming
+facilities. 
+</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0in">typlist&lt;&gt; 
+	</P>
+	<LI><P STYLE="margin-bottom: 0in">get&lt;&gt; 
+	</P>
+	<LI><P>type_switch&lt;&gt; 
+	</P>
+</UL>
+<H3>ttl::meta::typelist</H3>
+<P>typelist is is a list of types that is specified as a set of
+template parameters. typelist&lt;int, char&gt; is a list of 'int' and
+'char' types. typelist is very efficient. It is implemented as a plain
+set of typedefs. It doesn't have the overhead associated with nested
+templates as in some more popular implementations that use cons&lt;H,
+cons&lt;H, ...&gt; &gt; or duo&lt;H, duo&lt;H,...&gt; &gt; kind of
+techniques.<BR>There is a number of meta functions that operate on
+typelists.</P>
+<H3>ttl::meta::get&lt;L, N&gt;</H3>
+<P>typedef typelist&lt;int, char&gt; list;<BR>get&lt;list, 0&gt;::type
+//returns int<BR>get&lt;list, 1&gt;::type //returns char</P>
+<P>Since typelist is a plain list, get&lt;&gt; can be implemented as
+a constant time random access enumerator.</P>
+<P CLASS="sourcecode">template&lt;typename T&gt; struct get&lt;T,
+0&gt;<BR>{ <BR>&nbsp;&nbsp;&nbsp;enum { index = 0 }; <BR>&nbsp;&nbsp;&nbsp;typedef
+typename T::type1 type; <BR>};</P>
+<P CLASS="sourcecode">template&lt;typename T&gt; struct get&lt;T,
+1&gt;<BR>{ <BR>&nbsp;&nbsp;&nbsp;enum { index = 1 }; <BR>&nbsp;&nbsp;&nbsp;typedef
+typename T::type2 type; <BR>};</P>
+<P CLASS="sourcecode">...</P>
+<H3>ttl::meta::type_switch</H3>
+<P>type_switch is a run-time switch-like function on typelists.</P>
+<P CLASS="sourcecode">struct my_functor<BR>{<BR>&nbsp;&nbsp;&nbsp;template&lt;typename
+T&gt;<BR>&nbsp;&nbsp;&nbsp;void operator()() { ...do something
+}<BR>};<BR><BR>typedef typelist&lt;int, char&gt; list;<BR>void
+f()<BR>{<BR>&nbsp;&nbsp;&nbsp;int type = 0;<BR><BR>&nbsp;&nbsp;&nbsp;my_functor
+f;<BR>&nbsp;&nbsp;&nbsp;type_switch&lt;list&gt; ts;<BR>&nbsp;&nbsp;&nbsp;ts(type);
+//calls my_functor::operator()&lt;int&gt;();<BR>&nbsp;&nbsp;&nbsp;type
+= 1;<BR>&nbsp;&nbsp;&nbsp;ts(type); //calls
+my_functor::operator()&lt;char&gt;();<BR>&nbsp;&nbsp;&nbsp;type =
+2;<BR>&nbsp;&nbsp;&nbsp;ts(type); //run-time exception<BR>}</P>
+<H2><A NAME="function"></A>ttl::func</H2>
+<P>func namespace contains:</P>
+<UL>
+	<LI><A HREF="#func_function">function&lt;&gt;</A>
+	<LI><A HREF="#func_named_params_function">named_params_function&lt;&gt;</A>
+</UL>
+
+<H3><A NAME="func_function"></A> ttl::func::function</H3>
+<P>The ttl::func::function is very similar to boost::function (see
+<A HREF="#Sample">Sample</A>).<BR><BR><U>Comments</U></P>
+<OL>
+	<LI><P>I was scared by the complexity of the boost::function
+	implementation for such a basic class.</P>
+	<LI><P>Just including &quot;boost/function.hpp&quot; (10 parameters
+	limit) adds about 4 sec in compilation time on my machine while
+	including &quot;ttl/func/function.hpp&quot; (the same limit) doesn't
+	appear to have any noticeable impact on the compilation time.</P>
+</OL>
+
+<H3><A NAME="func_named_params_function"></A>ttl::func::named_params_function</H3>
+<P>
+named_params_function&lt;&gt; can be used to
+to convert any function into a functor with named
+parameters. The declaration consists of pairs (parameter name, parameter type).
+Here is an example.
+</P>
+
+<pre>
+#include "ttl/func/named_params_function.hpp"
+
+// there is a C function that is implemented somewhere.
+//
+int CreateWidget( const char* title, int style );
+
+// define argument names
+//
+struct title;
+struct style;
+
+// declare a function that returns 'int' and accepts
+// named paramters 'title' and 'style'
+typedef ttl::func::named_params_function&lt;
+     int //the function returns 'int'
+     (
+         //'argument name',  'argument type'
+
+         title,    const char*
+        ,style,    numeric_argument&lt;int, 45&gt; //the default is 45
+     )
+  &gt; create_widget;
+
+int main()
+{
+     create_widget cw(CreateWidget);
+
+     //call with 'style' 3 and title 'nill'
+     cw( cw.arg&lt;style&gt;(3) );
+
+     //call with 'title' "hi" and 'style' 45
+     cw( cw.arg&lt;title&gt;("hi") );
+
+     //call with 'title' "hi" and 'style' 5
+     //note the order of parameters doesn't matter only names
+     cw( cw.arg&lt;style&gt;(5), cw.arg&lt;title&gt;("hi") );
+
+     return 0;
+};
+</pre>
+
+<p>
+create_widget&lt;&gt; can be used with any function or
+method that have the specified signature.
+
+You can find a working sample for class members
+in samples/test/named_params_test.cpp.
+
+The sample used boost::bind for bindind class members.
+</p>
+
+
+<H2><A NAME="variant"></A>ttl::var</H2>
+<P>The var namespace contains 
+</P>
+<UL>
+	<LI><P>variant&lt;&gt;</P>
+	<LI><P>apply_visitor&lt;&gt;</P>
+	<LI><P>get&lt;&gt;</P>
+</UL>
+<H3>ttl::var::variant</H3>
+<P>ttl::var::variant has almost the same interface as boost::variant
+including unary and binary visitors. variant cannot include 'const'
+types. variant&lt;&gt;::list is the typelist&lt;&gt; class composed
+of of the variant types.<BR><BR><U>Comments</U><BR><BR>There are
+following differences between ttl variant and boost variant.</P>
+<UL>
+	<LI><P>ttl::var::variant can be in an uninitialized (singular) state.
+	ttl::var::variant becomes singular if it has not been initialized or
+	there was an exception (see section on exceptions) during
+	assignment. On the other hand boost::variant always contains a user
+	defined type. If the assignment fails the content of boost::variant
+	might be changed under the covers to a default-constrictable value.
+	boost::variant visitors cannot assume that the variant  content has
+	not been changed by the variant internally. ttl::var::variant visitors
+	simply won't be called if the variant is in singular state. In other
+	words if a visitor is called, the variant content is guaranteed
+	be valid (that was set by the user).</P>
+	<LI><P>ttl::var::variant visitors are not required to be derived from
+	another class like boost::variant visitors need to be derived from
+	boost::variant::static_visitor.</P>
+	<LI><P>ttl visitors cannot return a value. This limitation has a
+	simple workaround with a wrapper class. 
+	</P>
+</UL>
+<OL>
+	<P CLASS="sourcecode">int visitor( my_type&amp; x );<BR><BR>struct
+	visitor_wrapper<BR>{<BR>int return_value;<BR><BR>&nbsp;&nbsp;&nbsp;void
+	operator()( my_type&amp; x )<BR>&nbsp;&nbsp;&nbsp;{<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return_value
+	= visitor(x);<BR>&nbsp;&nbsp;&nbsp;}<BR>};<BR><BR>variant&lt;my_type&amp;&gt;
+	var;<BR>visitor_wrapper vw;<BR>apply_visitor(var, vw);<BR>int r =
+	vw.return_value;</P>
+</OL>
+<P>We are planning to generalize such a wrapper latter.<BR><BR><BR>
+</P>
+<UL>
+	<LI><P>In some cases boost::variant will allocate heap memory
+	dynamically, ttl::var::variant never does that.</P>
+	<LI><P>ttl::var::variant implementation is very simple.<BR><BR><BR>
+	</P>
+</UL>
+<H2><A NAME="signal"></A>ttl::sig</H2>
+<P>The sig namspace contains:</P>
+<UL>
+	<LI><P>signal</P>
+	<LI><P>connection</P>
+</UL>
+<H3>ttl::sig::signal</H3>
+<P>tll::sig::signal provides a very similar functionality to
+boost::signal. Although ttl::sig::signal has a more basic interface
+comparing to boost::signal, we believe that ttl::sig::signal is a better
+choice for wide range of applications where the advanced features of
+boost::signal are not needed. For a sample code, see <A HREF="#Sample">Sample</A> 
+<BR><BR><U>Comments</U><BR>ttl::sig::signal
+calls connections in the order they created.<BR>Comparison with
+boost::signal</P>
+<UL>
+	<LI><P>ttl::sig::signal has a much better compilation time
+	performance.</P>
+	<LI><P>ttl::sig::signal has a very simple implementation that
+	resides in header files only. There is no need for a dynamic or
+	static libraries.</P>
+	<LI><P>ttl::sig::signal supports plain functions directly while it
+	appears that boost::signal requires functors (see <A HREF="#Sample">Sample</A>).</P>
+</UL>
+<P>The following boost::signal features are not supported.</P>
+<UL>
+	<LI><P>boost::signals groups.</P>
+	<LI><P>boost::signals combiners.</P>
+	<LI><P>trackable objects. So when a connected object is destroyed,
+	all its connections must be implicitly closed.</P>
+	<LI><P>boost::signals::scoped_connection</P>
+</UL>
+<P>Note: we believe that all these features can be implemented using
+ttl::sig::signal as a low-level building block.<BR><BR><BR><BR>
+</P>
+
+<HR>
+<P><BR><BR>
+</P>
+<P ALIGN=LEFT><A HREF="http://sourceforge.net/"><IMG SRC="http://sourceforge.net/sflogo.php?group_id=87508&amp;type=5" NAME="Graphic1" ALT="SourceForge.net Logo" ALIGN=BOTTOM WIDTH=210 HEIGHT=62 BORDER=0></A>
+</P>
+</BODY>
+</HTML>
