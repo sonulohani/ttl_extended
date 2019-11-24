@@ -15,11 +15,15 @@
 
 namespace ttl
 {
-	struct exception : std::runtime_error
-	{
-		exception() : std::runtime_error("ttl error") {}
-		exception( char* msg ) :  std::runtime_error(msg) {}
-	};
+struct exception : std::runtime_error
+{
+    exception() : std::runtime_error("ttl error")
+    {
+    }
+    exception(char *msg) : std::runtime_error(msg)
+    {
+    }
 };
+}; // namespace ttl
 
 #endif //__exception__hpp

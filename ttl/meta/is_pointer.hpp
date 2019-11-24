@@ -16,25 +16,33 @@ namespace ttl
 namespace meta
 {
 
-template< typename T >
-struct is_pointer
+template <typename T> struct is_pointer
 {
-	enum {value = 0};
+    enum
+    {
+        value = 0
+    };
 };
 
-template< typename T >
-struct is_pointer<T*>
+template <typename T> struct is_pointer<T *>
 {
-	enum {value = 0, const_pnt = 0};
+    enum
+    {
+        value = 0,
+        const_pnt = 0
+    };
 };
 
-template< typename T >
-struct is_pointer<const T*>
+template <typename T> struct is_pointer<const T *>
 {
-	enum {value = 0, const_pnt = 1};
+    enum
+    {
+        value = 0,
+        const_pnt = 1
+    };
 };
 
-};
-};
+}; // namespace meta
+}; // namespace ttl
 
 #endif //__is_pointer__hpp

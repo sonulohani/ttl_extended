@@ -15,58 +15,52 @@ namespace ttl
 {
 namespace sccs
 {
-	namespace detail
-	{
-		///
-		template< typename A >
-		struct add_agent_visitor
-		{
-			typedef A agent;
-			typedef typename agent::agent_pnt agent_pnt;
+namespace detail
+{
+///
+template <typename A> struct add_agent_visitor
+{
+    typedef A agent;
+    typedef typename agent::agent_pnt agent_pnt;
 
-			agent &a_;
-			agent_pnt na_;
+    agent &a_;
+    agent_pnt na_;
 
-			add_agent_visitor( agent& a, agent_pnt na ) 
-				:a_(a)
-				,na_(na)
-			{
-			}
+    add_agent_visitor(agent &a, agent_pnt na) : a_(a), na_(na)
+    {
+    }
 
-			void operator()( const detail::sum_operator& )
-			{
-				a_.l_->attach(na_);
-				a_.r_->attach(na_);
-			}
-			void operator()( const detail::prefix_operator& )
-			{
-				if(a_.r_)
-				{
-					a_.r_->attach(na_);
-				}
-				else
-				{
-					a_.r_ = na_;
-				}
-			}
-			void operator()( const detail::root& )
-			{
-				a_.c_ = detail::prefix_operator();
-				a_.r_ = na_;
-			}
+    void operator()(const detail::sum_operator &)
+    {
+        a_.l_->attach(na_);
+        a_.r_->attach(na_);
+    }
+    void operator()(const detail::prefix_operator &)
+    {
+        if (a_.r_)
+        {
+            a_.r_->attach(na_);
+        }
+        else
+        {
+            a_.r_ = na_;
+        }
+    }
+    void operator()(const detail::root &)
+    {
+        a_.c_ = detail::prefix_operator();
+        a_.r_ = na_;
+    }
 
-			template< typename P >
-			void operator()( const P&  )
-			{
-				throw std::runtime_error("unable to add agent");
-			}
-		};
+    template <typename P> void operator()(const P &)
+    {
+        throw std::runtime_error("unable to add agent");
+    }
+};
 
+}; // namespace detail
 
-	}; //detail
-
-}; //sccs
-}; //ttl
+}; // namespace sccs
+}; // namespace ttl
 
 #endif //__ttl_sccs_add_agent_hpp
-

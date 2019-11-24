@@ -12,8 +12,7 @@
 #define __ttl_macro_misc__hpp
 
 #define TTL_RET(x) x
-#define TTL_APPEND( x, y ) TTL_APPEND1(x,y)
-#define TTL_APPEND1( x, y ) x ## y
-
+#define TTL_APPEND(x, y) TTL_APPEND1(x, y)
+#define TTL_APPEND1(x, y) x##y
 
 #endif //__macro_misc__hpp

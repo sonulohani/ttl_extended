@@ -15,18 +15,22 @@ namespace ttl
 {
 namespace meta
 {
-	template< typename T1, typename T2 >
-	struct is_same
-	{
-		enum { value = 0 };
-	};
+template <typename T1, typename T2> struct is_same
+{
+    enum
+    {
+        value = 0
+    };
+};
 
-	template< typename T >
-	struct is_same<T, T>
-	{
-		enum { value = 1 };
-	};
+template <typename T> struct is_same<T, T>
+{
+    enum
+    {
+        value = 1
+    };
 };
-};
+}; // namespace meta
+}; // namespace ttl
 
 #endif //__is_same__hpp

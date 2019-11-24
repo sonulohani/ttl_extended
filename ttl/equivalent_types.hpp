@@ -13,38 +13,50 @@
 
 namespace ttl
 {
-	template< typename T1, typename T2 >
-	struct equivalent_types
-	{
-		enum { value = 0 };
-	};		
-	
-	template< typename T >
-	struct equivalent_types<T,T>
-	{
-		enum { value = 1 };
-	};		
-	
-	template< typename T > 
-	struct equivalent_types<T&,T>
-	{
-		enum { value = 1 };
-	};
-	template< typename T > 
-	struct equivalent_types<T,T&>
-	{
-		enum { value = 1 };
-	};
-	template< typename T > 
-	struct equivalent_types<T,const T&>
-	{
-		enum { value = 1 };
-	};
-	template< typename T > 
-	struct equivalent_types<const T&, T&>
-	{
-		enum { value = 1 };
-	};
+template <typename T1, typename T2> struct equivalent_types
+{
+    enum
+    {
+        value = 0
+    };
 };
+
+template <typename T> struct equivalent_types<T, T>
+{
+    enum
+    {
+        value = 1
+    };
+};
+
+template <typename T> struct equivalent_types<T &, T>
+{
+    enum
+    {
+        value = 1
+    };
+};
+template <typename T> struct equivalent_types<T, T &>
+{
+    enum
+    {
+        value = 1
+    };
+};
+template <typename T> struct equivalent_types<T, const T &>
+{
+    enum
+    {
+        value = 1
+    };
+};
+template <typename T> struct equivalent_types<const T &, T &>
+{
+    enum
+    {
+        value = 1
+    };
+};
+}; // namespace ttl
 
 #endif //__ttl_equivalent_type__hpp

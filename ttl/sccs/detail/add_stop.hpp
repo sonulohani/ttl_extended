@@ -15,56 +15,51 @@ namespace ttl
 {
 namespace sccs
 {
-	namespace detail
-	{
-		///
-		template< typename A >
-		struct add_stop_visitor
-		{
-			typedef A agent;
+namespace detail
+{
+///
+template <typename A> struct add_stop_visitor
+{
+    typedef A agent;
 
-			agent &a_;
+    agent &a_;
 
-			add_stop_visitor( agent& a ) 
-				:a_(a)
-			{
-			}
+    add_stop_visitor(agent &a) : a_(a)
+    {
+    }
 
-			void operator()( const detail::sum_operator& )
-			{
-				a_.l_->stop();
-				a_.r_->stop();
-			}
-			void operator()( const detail::prefix_operator& )
-			{
-				if(a_.r_)
-				{
-					a_.r_->stop();
-				}
-				else
-				{
-					a_.r_.reset( new agent(prefix_operator()) );
-					a_.r_->l_.reset( new agent(detail::stop()) );
-				}
-			}
-			void operator()( const detail::root& )
-			{
-				a_.c_ = detail::prefix_operator();
-				a_.r_->l_.reset( new agent(detail::stop()) );
-			}
+    void operator()(const detail::sum_operator &)
+    {
+        a_.l_->stop();
+        a_.r_->stop();
+    }
+    void operator()(const detail::prefix_operator &)
+    {
+        if (a_.r_)
+        {
+            a_.r_->stop();
+        }
+        else
+        {
+            a_.r_.reset(new agent(prefix_operator()));
+            a_.r_->l_.reset(new agent(detail::stop()));
+        }
+    }
+    void operator()(const detail::root &)
+    {
+        a_.c_ = detail::prefix_operator();
+        a_.r_->l_.reset(new agent(detail::stop()));
+    }
 
-			template< typename P >
-			void operator()( const P&  )
-			{
-				throw std::runtime_error("unable to add stop");
-			}
-		};
+    template <typename P> void operator()(const P &)
+    {
+        throw std::runtime_error("unable to add stop");
+    }
+};
 
+}; // namespace detail
 
-	}; //detail
-
-}; //sccs
-}; //ttl
+}; // namespace sccs
+}; // namespace ttl
 
 #endif //__ttl_sccs_add_stop_hpp
-

@@ -13,16 +13,16 @@
 
 namespace ttl
 {
-	template< bool C > struct assert {};
-	
-	template<>
-	struct assert<true> 
-	{
-		typedef int type;
-	};
+template <bool C> struct assert
+{
 };
 
+template <> struct assert<true>
+{
+    typedef int type;
+};
+}; // namespace ttl
 
-#define TTL_ASSERT( c ) sizeof( ttl::assert<c>::type );
+#define TTL_ASSERT(c) sizeof(ttl::assert<c>::type);
 
 #endif //__macro_assert__hpp

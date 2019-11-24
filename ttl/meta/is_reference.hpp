@@ -15,32 +15,32 @@ namespace ttl
 {
 namespace meta
 {
-	template< typename T >
-	struct is_reference
-	{
-		enum { value = 0 };
-	};
-	
-	template< typename T >
-	struct is_reference<T&>
-	{
-		enum 
-		{ 
-			value = 1,
-			const_ref = 0
-		};
-	};
-	
-	template< typename T >
-	struct is_reference<const T&>
-	{
-		enum 
-		{ 
-			value = 1,
-			const_ref = 1
-		};
-	};
+template <typename T> struct is_reference
+{
+    enum
+    {
+        value = 0
+    };
 };
+
+template <typename T> struct is_reference<T &>
+{
+    enum
+    {
+        value = 1,
+        const_ref = 0
+    };
 };
+
+template <typename T> struct is_reference<const T &>
+{
+    enum
+    {
+        value = 1,
+        const_ref = 1
+    };
+};
+}; // namespace meta
+}; // namespace ttl
 
 #endif //__is_reference__hpp

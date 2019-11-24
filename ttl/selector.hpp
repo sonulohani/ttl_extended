@@ -13,17 +13,15 @@
 
 namespace ttl
 {
-	template <bool Cond, typename T1, typename T2 >
-	struct selector
-	{
-		typedef T1 type;
-	};
-
-	template <typename T1, typename T2 >
-	struct selector<false, T1, T2>
-	{
-		typedef T2 type;
-	};
+template <bool Cond, typename T1, typename T2> struct selector
+{
+    typedef T1 type;
 };
+
+template <typename T1, typename T2> struct selector<false, T1, T2>
+{
+    typedef T2 type;
+};
+}; // namespace ttl
 
 #endif //__selector__hpp
